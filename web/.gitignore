@@ -1,0 +1,11 @@
+node_modules/
+.react-router/
+build/
+.wrangler/
+.dev.vars
+*.local
+
+# Copyright: never commit frames/thumbnails or the static copies served in dev
+public/thumbs/
+public/frames/
+.env
