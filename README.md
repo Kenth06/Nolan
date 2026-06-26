@@ -9,6 +9,8 @@ platform. Stills are embedded with **Google Gemini** (`gemini-embedding-2`) and 
 **Cloudflare Vectorize** — text and images share one vector space, so a typed description finds
 the frames it *looks* like.
 
+**Live demo:** https://nolan.kennethfi646-410.workers.dev
+
 ## How it works
 
 ```
