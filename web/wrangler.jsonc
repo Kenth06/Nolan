@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nolan",
+  "main": "./workers/app.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  // Per-IP rate limit on the search endpoint (20 requests / 60s) so it can't be spammed.
+  "ratelimits": [
+    { "name": "SEARCH_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
+  ],
+
+  // All data services run on Cloudflare's network. `remote: true` makes `pnpm dev` (local
+  // execution) proxy these binding calls to the real resources — required for Vectorize and
+  // Workers AI, which have no local simulation. GEMINI_API_KEY is a secret (see README), not here.
+  "ai": { "binding": "AI", "remote": true },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "nolan-frames", "remote": true }],
+  "r2_buckets": [
+    { "binding": "FRAMES", "bucket_name": "nolan-frames", "remote": true },
+    { "binding": "THUMBS", "bucket_name": "nolan-thumbs", "remote": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nolan-db",
+      "database_id": "b3858df9-fb66-4baf-8915-50781b255bec",
+      "migrations_dir": "migrations",
+      "remote": true
+    }
+  ]
+}
