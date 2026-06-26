@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Secrets — NEVER commit
+.dev.vars
+**/.dev.vars
+.env
+*.local
+
+# Private: image corpus (copyright), generated data, the ingestion/embedding pipeline,
+# and internal working notes. None of this belongs in the public repo.
+/data/
+/scripts/
+/.nolan/
+/.claude/
+/package.json
+/pnpm-lock.yaml
+
+# Generated
+**/worker-configuration.d.ts
+**/*.tsbuildinfo
+web/.react-router/
+web/build/
+
+# Wrangler local state
+.wrangler/
+**/.wrangler/
+
+# OS
+.DS_Store
+Thumbs.db
