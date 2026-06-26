@@ -1,0 +1,43 @@
+@import "tailwindcss" source(".");
+
+/*
+ * Design tokens — Nolan visual identity, LIGHT mode.
+ * A warm paper-white canvas that lets the imagery carry, with the corpus's tungsten amber as a
+ * restrained accent and a cool steel for focus. Token names are stable so components and the
+ * product-design skill can reference them; only the values are light here.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-nolan-bg: #fbfbfa; /* warm paper white */
+  --color-nolan-surface: #f4f3f1; /* panel */
+  --color-nolan-surface-2: #ebe9e6; /* raised panel */
+  --color-nolan-line: #e4e2de; /* hairline borders */
+  --color-nolan-ink: #1b1a18; /* primary text — near-black, warm */
+  --color-nolan-muted: #76706a; /* secondary text */
+  --color-nolan-steel: #3f6273; /* cool steel — focus / secondary */
+  --color-nolan-amber: #9a6614; /* tungsten amber — accent (AA on white) */
+  --color-nolan-amber-bright: #b27d28;
+}
+
+html,
+body {
+  @apply bg-nolan-bg text-nolan-ink;
+  color-scheme: light;
+}
+
+/* Thin, quiet scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-nolan-line) transparent;
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
