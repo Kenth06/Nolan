@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
+import { useLoaderData } from "react-router";
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "motion/react";
 import type { Route } from "./+types/home";
 import { FILMS } from "~/lib/corpus";
 import type { SearchResultItem } from "~/lib/search.server";
+import { getPreviewIds } from "~/lib/preview.server";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -16,15 +17,12 @@ export function meta(_: Route.MetaArgs) {
   ];
 }
 
-type SearchResponse = { results?: SearchResultItem[]; error?: string };
+// Resolve the idle hero's stills to opaque public ids on the server.
+export async function loader({ context }: Route.LoaderArgs) {
+  return { previewIds: await getPreviewIds(context.cloudflare.env) };
+}
 
-// Stills spread across the twelve films — the drifting field on the idle screen.
-const PREVIEW_IDS = [
-  "following_007", "memento_021", "insomnia_018", "batman-begins_030",
-  "the-prestige_012", "the-dark-knight_040", "inception_026", "the-dark-knight-rises_015",
-  "interstellar_035", "dunkirk_022", "tenet_031", "oppenheimer_037",
-  "interstellar_010", "inception_042", "dunkirk_040", "oppenheimer_012",
-];
+type SearchResponse = { results?: SearchResultItem[]; error?: string };
 
 type Drifter = {
   top: number; left: number; w: number; rot: number; op: number;
@@ -33,9 +31,10 @@ type Drifter = {
 
 // Deterministic brick-scatter that fills the whole idle canvas evenly (no center hole).
 // Pure math (sin-hash), so server and client render identically — no hydration drift.
+const PREVIEW_COUNT = 16; // number of drifting cards on the idle screen
 const COLS = 4;
-const ROWS = Math.ceil(PREVIEW_IDS.length / COLS);
-const DRIFTERS: Drifter[] = PREVIEW_IDS.map((_, i) => {
+const ROWS = Math.ceil(PREVIEW_COUNT / COLS);
+const DRIFTERS: Drifter[] = Array.from({ length: PREVIEW_COUNT }, (_, i) => {
   const row = Math.floor(i / COLS);
   const col = i % COLS;
   const hash = (seed: number) => {
@@ -66,23 +65,42 @@ const DRIFTERS: Drifter[] = PREVIEW_IDS.map((_, i) => {
 // Emil Kowalski's strong ease-out — built-in CSS easings are too weak. Enters ease *out*, never in.
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
+type SearchState = {
+  status: "idle" | "loading" | "done";
+  results: SearchResultItem[];
+  error?: string;
+};
+
 export default function Home() {
-  const [fkey, setFkey] = useState(0); // bumping the key gives a fresh fetcher (discards results)
-  const fetcher = useFetcher<SearchResponse>({ key: `search-${fkey}` });
+  const { previewIds } = useLoaderData<typeof loader>();
   const [query, setQuery] = useState("");
   const [lightbox, setLightbox] = useState<SearchResultItem | null>(null);
+  const [search, setSearch] = useState<SearchState>({ status: "idle", results: [] });
 
-  const busy = fetcher.state !== "idle";
-  const data = fetcher.data;
-  const results = data?.results;
-  const hasSearched = fetcher.data !== undefined || busy;
+  const busy = search.status === "loading";
+  const results = search.results;
+  const hasSearched = search.status !== "idle";
 
-  function runSearch(q: string = query) {
-    if (!q.trim()) return;
-    fetcher.submit(
-      { q: q.trim() },
-      { method: "POST", action: "/api/search", encType: "application/json" },
-    );
+  // The API is a Hono endpoint outside React Router, so call it with a plain fetch.
+  async function runSearch(q: string = query) {
+    const text = q.trim();
+    if (!text) return;
+    setSearch({ status: "loading", results: [] });
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ q: text }),
+      });
+      const data = (await res.json()) as SearchResponse;
+      setSearch({
+        status: "done",
+        results: res.ok ? (data.results ?? []) : [],
+        error: res.ok ? undefined : (data.error ?? "Search failed."),
+      });
+    } catch {
+      setSearch({ status: "done", results: [], error: "Network error — please try again." });
+    }
   }
 
   function onSubmit(e: React.FormEvent) {
@@ -94,7 +112,7 @@ export default function Home() {
   function reset() {
     setQuery("");
     setLightbox(null);
-    setFkey((k) => k + 1);
+    setSearch({ status: "idle", results: [] });
   }
 
   useEffect(() => {
@@ -158,13 +176,11 @@ export default function Home() {
 
         {/* Body */}
         <section className="mt-10">
-          {!hasSearched && <IdleState />}
+          {!hasSearched && <IdleState previewIds={previewIds} />}
           {busy && <SkeletonGrid />}
-          {!busy && data?.error && <ErrorState message={data.error} />}
-          {!busy && results && results.length === 0 && <NoResults />}
-          {!busy && results && results.length > 0 && (
-            <ResultsGrid results={results} onOpen={setLightbox} />
-          )}
+          {!busy && search.error && <ErrorState message={search.error} />}
+          {!busy && hasSearched && !search.error && results.length === 0 && <NoResults />}
+          {!busy && results.length > 0 && <ResultsGrid results={results} onOpen={setLightbox} />}
         </section>
 
         <AnimatePresence>
@@ -274,13 +290,13 @@ function Lightbox({ item, onClose }: { item: SearchResultItem; onClose: () => vo
   );
 }
 
-function IdleState() {
+function IdleState({ previewIds }: { previewIds: string[] }) {
   const reduce = useReducedMotion();
 
   return (
     <div className="relative isolate min-h-[520px] overflow-hidden sm:min-h-[560px]">
       {/* Scattered movie stills drifting across the page (decorative). */}
-      {PREVIEW_IDS.map((id, i) => {
+      {previewIds.map((id, i) => {
         const d = DRIFTERS[i];
         if (!d) return null;
         return <DriftCard key={id} id={id} d={d} index={i} reduce={!!reduce} />;
