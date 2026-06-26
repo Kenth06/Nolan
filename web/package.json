@@ -1,0 +1,42 @@
+{
+  "name": "nolan",
+  "private": true,
+  "type": "module",
+  "description": "Nolan — visual semantic search over Christopher Nolan's filmography",
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "preview": "npm run build && vite preview",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "typegen": "wrangler types && react-router typegen",
+    "typecheck": "npm run typegen && tsc -b",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply nolan-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply nolan-db --remote"
+  },
+  "dependencies": {
+    "hono": "^4.12.27",
+    "isbot": "5.1.32",
+    "motion": "^12.42.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-router": "7.9.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.15.3",
+    "@cloudflare/workers-types": "^4.20250601.0",
+    "@react-router/dev": "7.9.6",
+    "@tailwindcss/vite": "4.1.17",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "drizzle-kit": "^0.30.6",
+    "drizzle-orm": "^0.38.4",
+    "tailwindcss": "4.1.17",
+    "typescript": "5.9.3",
+    "vite": "^7.0.0",
+    "vite-tsconfig-paths": "5.1.4",
+    "wrangler": "4.88.0"
+  }
+}
