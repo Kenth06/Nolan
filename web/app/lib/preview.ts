@@ -1,8 +1,9 @@
 /**
  * The curated idle-hero stills — a fixed spread across the twelve films, shown to everyone as
- * decoration. These are referenced by index via `/img/preview/:index`, so they need no opaque
- * public id and no per-request D1 lookup. The internal R2 keys stay server-side; the route maps
- * an index to a key, never exposing the key or a path to the rest of the (protected) corpus.
+ * decoration. `scripts/preview-assets.mjs` copies these keys' thumbs into web/public/previews/ as
+ * 0..N.webp, served as static CDN assets (no API, no D1). The stills are copyright, so the output
+ * folder is gitignored — they ship with the deploy but never enter the repo. PREVIEW_COUNT drives
+ * the idle layout in home.tsx.
  */
 export const PREVIEW_KEYS = [
   "following_007", "memento_021", "insomnia_018", "batman-begins_030",
