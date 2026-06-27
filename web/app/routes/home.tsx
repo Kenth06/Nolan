@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLoaderData } from "react-router";
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "motion/react";
 import type { Route } from "./+types/home";
 import { FILMS } from "~/lib/corpus";
-import type { SearchResultItem } from "~/lib/search.server";
-import { getPreviewIds } from "~/lib/preview.server";
+import type { SearchResultItem } from "~/lib/search.types";
+import { PREVIEW_COUNT } from "~/lib/preview";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -17,11 +16,6 @@ export function meta(_: Route.MetaArgs) {
   ];
 }
 
-// Resolve the idle hero's stills to opaque public ids on the server.
-export async function loader({ context }: Route.LoaderArgs) {
-  return { previewIds: await getPreviewIds(context.cloudflare.env) };
-}
-
 type SearchResponse = { results?: SearchResultItem[]; error?: string };
 
 type Drifter = {
@@ -31,7 +25,6 @@ type Drifter = {
 
 // Deterministic brick-scatter that fills the whole idle canvas evenly (no center hole).
 // Pure math (sin-hash), so server and client render identically — no hydration drift.
-const PREVIEW_COUNT = 16; // number of drifting cards on the idle screen
 const COLS = 4;
 const ROWS = Math.ceil(PREVIEW_COUNT / COLS);
 const DRIFTERS: Drifter[] = Array.from({ length: PREVIEW_COUNT }, (_, i) => {
@@ -72,7 +65,6 @@ type SearchState = {
 };
 
 export default function Home() {
-  const { previewIds } = useLoaderData<typeof loader>();
   const [query, setQuery] = useState("");
   const [lightbox, setLightbox] = useState<SearchResultItem | null>(null);
   const [search, setSearch] = useState<SearchState>({ status: "idle", results: [] });
@@ -176,7 +168,7 @@ export default function Home() {
 
         {/* Body */}
         <section className="mt-10">
-          {!hasSearched && <IdleState previewIds={previewIds} />}
+          {!hasSearched && <IdleState />}
           {busy && <SkeletonGrid />}
           {!busy && search.error && <ErrorState message={search.error} />}
           {!busy && hasSearched && !search.error && results.length === 0 && <NoResults />}
@@ -290,17 +282,16 @@ function Lightbox({ item, onClose }: { item: SearchResultItem; onClose: () => vo
   );
 }
 
-function IdleState({ previewIds }: { previewIds: string[] }) {
+function IdleState() {
   const reduce = useReducedMotion();
 
   return (
     <div className="relative isolate min-h-[520px] overflow-hidden sm:min-h-[560px]">
-      {/* Scattered movie stills drifting across the page (decorative). */}
-      {previewIds.map((id, i) => {
-        const d = DRIFTERS[i];
-        if (!d) return null;
-        return <DriftCard key={id} id={id} d={d} index={i} reduce={!!reduce} />;
-      })}
+      {/* Scattered movie stills drifting across the page (decorative). Served as static assets
+          (web/public/previews/0..15.webp), so the idle screen makes no API/D1 calls. */}
+      {DRIFTERS.map((d, i) => (
+        <DriftCard key={i} index={i} d={d} reduce={!!reduce} />
+      ))}
 
       {/* Soft fade so the field melts into the page at the bottom. */}
       <div
@@ -312,12 +303,10 @@ function IdleState({ previewIds }: { previewIds: string[] }) {
 }
 
 function DriftCard({
-  id,
   d,
   index,
   reduce,
 }: {
-  id: string;
   d: Drifter;
   index: number;
   reduce: boolean;
@@ -351,7 +340,7 @@ function DriftCard({
         }
       >
         <img
-          src={`/img/thumb/${id}`}
+          src={`/previews/${index}.webp`}
           alt=""
           loading="lazy"
           className="aspect-video w-full rounded-xl object-cover shadow-[0_10px_30px_-14px_rgba(0,0,0,0.45)] ring-1 ring-nolan-line"

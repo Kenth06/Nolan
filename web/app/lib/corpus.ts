@@ -24,5 +24,3 @@ export const FILMS: Film[] = [
 export const FILM_BY_SLUG: Record<string, Film> = Object.fromEntries(
   FILMS.map((f) => [f.slug, f]),
 );
-
-export const DPS = ["Wally Pfister", "Hoyte van Hoytema"] as const;

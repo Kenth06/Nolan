@@ -4,6 +4,6 @@ import { defineConfig } from "drizzle-kit";
 // `wrangler d1 migrations apply`. No credentials needed for `generate`.
 export default defineConfig({
   out: "./migrations",
-  schema: "./app/lib/db/schema.ts",
+  schema: "./workers/entities/frames.entity.ts",
   dialect: "sqlite",
 });

@@ -6,7 +6,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
 
-  // Per-IP rate limit on the search endpoint (20 requests / 60s) so it can't be spammed.
+  // Per-IP rate limit on the search endpoint (20 requests / 60s) so it (and the paid Gemini
+  // embedding behind it) can't be spammed.
   "ratelimits": [
     { "name": "SEARCH_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
   ],

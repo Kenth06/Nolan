@@ -13,6 +13,9 @@ node_modules/
 /scripts/
 /.nolan/
 /.claude/
+# Idle-hero preview stills: copied from the corpus by scripts/preview-assets.mjs and shipped as
+# static assets with the deploy, but copyright — never commit them.
+/web/public/previews/
 /package.json
 /pnpm-lock.yaml
 
