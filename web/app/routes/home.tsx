@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "motion/react";
 import type { Route } from "./+types/home";
 import { FILMS } from "~/lib/corpus";
@@ -175,6 +175,19 @@ export default function Home() {
           {!busy && results.length > 0 && <ResultsGrid results={results} onOpen={setLightbox} />}
         </section>
 
+        {/* Announce state changes to screen readers (the visual states are otherwise silent). */}
+        <p aria-live="polite" className="sr-only">
+          {busy
+            ? "Searching…"
+            : search.error
+              ? search.error
+              : !hasSearched
+                ? ""
+                : results.length === 0
+                  ? "No matching stills."
+                  : `${results.length} result${results.length === 1 ? "" : "s"}.`}
+        </p>
+
         <AnimatePresence>
           {lightbox && <Lightbox item={lightbox} onClose={() => setLightbox(null)} />}
         </AnimatePresence>
@@ -214,7 +227,12 @@ function ResultTile({
   onOpen: (r: SearchResultItem) => void;
 }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   const f = FILMS.find((x) => x.slug === item.film);
+  // A cached image can finish loading before React attaches onLoad; reconcile from the element.
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+  }, []);
   return (
     <button
       onClick={() => onOpen(item)}
@@ -222,6 +240,7 @@ function ResultTile({
       aria-label={`Open still from ${f?.title ?? item.film}`}
     >
       <img
+        ref={imgRef}
         src={item.thumbUrl}
         alt={`Still from ${f?.title ?? item.film} (${item.year})`}
         loading="lazy"
@@ -238,6 +257,26 @@ function ResultTile({
 
 function Lightbox({ item, onClose }: { item: SearchResultItem; onClose: () => void }) {
   const f = FILMS.find((x) => x.slug === item.film);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Move focus into the dialog, trap it (the close button is the only focusable child), and
+  // restore focus to the triggering tile on close — so `aria-modal` is honoured for keyboard/SR.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
   return (
     <motion.div
       role="dialog"
@@ -248,7 +287,7 @@ function Lightbox({ item, onClose }: { item: SearchResultItem; onClose: () => vo
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: EASE_OUT }}
-      className="fixed inset-0 z-50 grid cursor-zoom-out place-items-center bg-nolan-ink/45 p-4 backdrop-blur-md sm:p-8"
+      className="fixed inset-0 z-50 grid cursor-zoom-out place-items-center bg-nolan-ink/70 p-4 backdrop-blur-md sm:p-8"
     >
       <motion.figure
         className="max-h-full max-w-5xl cursor-default"
@@ -272,9 +311,10 @@ function Lightbox({ item, onClose }: { item: SearchResultItem; onClose: () => vo
         </figcaption>
       </motion.figure>
       <button
+        ref={closeRef}
         onClick={onClose}
         aria-label="Close"
-        className="absolute right-4 top-4 cursor-pointer rounded-full border border-white/20 bg-white/10 p-2 text-white/80 backdrop-blur transition-colors hover:bg-white/20 hover:text-white"
+        className="absolute right-4 top-4 cursor-pointer rounded-full border border-white/20 bg-white/10 p-2 text-white/80 backdrop-blur transition-colors hover:bg-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       >
         <CloseIcon className="h-5 w-5" />
       </button>
