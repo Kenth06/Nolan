@@ -6,22 +6,25 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "preview": "npm run build && vite preview",
+    "preview": "pnpm run build && vite preview",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types",
     "typegen": "wrangler types && react-router typegen",
-    "typecheck": "npm run typegen && tsc -b",
+    "typecheck": "pnpm run typegen && tsc -b",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply nolan-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply nolan-db --remote"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.8.0",
     "hono": "^4.12.27",
     "isbot": "5.1.32",
     "motion": "^12.42.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "react-router": "7.9.6"
+    "react-router": "7.9.6",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.15.3",
