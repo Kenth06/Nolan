@@ -60,19 +60,21 @@ meaning "just works".
 
 ```
 web/
-  app/
-    routes/home.tsx        search UI: hero, results grid, lightbox
-    lib/
-      embeddings.server.ts Gemini embeddings via AI Gateway
-      vectorstore.server.ts Vectorize query
-      search.server.ts     orchestration (embed → search → join)
-      db/                  Drizzle schema + D1 client
-    app.css                design tokens (light theme)
-  workers/
-    app.ts                 routes API/images to Hono, UI to React Router
-    api.ts                 Hono: rate-limited /api/search, secured /img/:type/:id
-  migrations/              D1 schema migrations
-  wrangler.jsonc           Workers bindings (AI, Vectorize, R2, D1, rate limit)
+  app/                       React Router UI (client + shared modules)
+    routes/home.tsx          search UI: idle hero, results grid, lightbox
+    lib/{corpus,preview,search.types}.ts   films, idle-hero keys, API result type
+    app.css                  design tokens (light theme)
+    public/previews/         idle-hero stills as static assets (gitignored corpus)
+  workers/                   server (Hono API), layered like a backend
+    app.ts                   entry: routes API/images to Hono, UI to React Router
+    api.ts                   Hono app: typed error handler + mounts controllers
+    controllers/             thin HTTP: search.controller, image.controller
+    services/                search · embeddings (Gemini) · vectorize · frames (D1)
+    entities/frames.entity.ts        Drizzle table
+    schemas/search.schema.ts         Zod input validation
+    common/                  CustomError, HonoEnv, Drizzle client
+  migrations/                D1 schema migrations
+  wrangler.jsonc             Workers bindings (AI, Vectorize, R2, D1, rate limit)
 ```
 
 ## Notes
