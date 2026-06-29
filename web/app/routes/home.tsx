@@ -121,18 +121,29 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-5 pb-28 pt-14 sm:px-8">
         {/* Header */}
         <header className="mb-10">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              <button
-                type="button"
-                onClick={reset}
-                aria-label="Back to start"
-                className="cursor-pointer rounded transition-opacity hover:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-nolan-amber"
-              >
-                Nolan
-              </button>
-            </h1>
-            <p className="text-sm text-nolan-muted">visual semantic search</p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                <button
+                  type="button"
+                  onClick={reset}
+                  aria-label="Back to start"
+                  className="cursor-pointer rounded transition-opacity hover:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-nolan-amber"
+                >
+                  Nolan
+                </button>
+              </h1>
+              <p className="text-sm text-nolan-muted">visual semantic search</p>
+            </div>
+            <a
+              href="https://github.com/Kenth06/Nolan"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="View source on GitHub"
+              className="-mr-1 shrink-0 rounded-full p-2 text-nolan-muted transition-colors hover:text-nolan-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-nolan-amber"
+            >
+              <GithubIcon className="h-5 w-5" />
+            </a>
           </div>
           <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-nolan-muted">
             Search across every Christopher Nolan film. Type a scene, a person, an object, a color,
@@ -430,6 +441,13 @@ function SearchIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <circle cx="11" cy="11" r="7" />
       <path d="m21 21-4.3-4.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+function GithubIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 .5C5.73.5.5 5.73.5 12.02c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.54-3.88-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.67.8.56A11.53 11.53 0 0 0 23.5 12.02C23.5 5.73 18.27.5 12 .5Z" />
     </svg>
   );
 }
